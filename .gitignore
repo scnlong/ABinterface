@@ -1,0 +1,18 @@
+# build directories
+
+# object / binary files
+
+# editor / OS files
+.vscode/
+*.swp
+.DS_Store
+.codex
+tags
+__pycache__
+
+# logs / temporary files
+*.log
+*.tmp
+*.aux
+*.out
+*.toc
