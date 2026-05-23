@@ -13,8 +13,6 @@ through:
     4. laser-driven spin-conserving intramaterial v <-> c excitation.
 """
 
-from __future__ import annotations
-
 import numpy as np
 
 from .basis import idx_A_dn, idx_A_up, idx_B_dn, idx_B_up

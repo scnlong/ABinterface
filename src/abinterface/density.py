@@ -1,7 +1,5 @@
 """Density-matrix initialization and unitary propagation."""
 
-from __future__ import annotations
-
 import numpy as np
 
 from .constants import HBAR_EV_FS

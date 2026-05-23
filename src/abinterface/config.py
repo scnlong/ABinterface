@@ -24,8 +24,6 @@ to obscure the pathway interpretation.
 No independent spin-splitting input parameters are exposed.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Literal
 

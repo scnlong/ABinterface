@@ -9,8 +9,6 @@ the last ``N/2`` are conduction-like.  The model uses this basis for Hamiltonian
 construction, projections, and state-resolved plotting.
 """
 
-from __future__ import annotations
-
 import numpy as np
 
 

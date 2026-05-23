@@ -5,8 +5,6 @@ scrolling form.  It is easier to use on normal laptop screens and keeps the
 main controls visible at the top.
 """
 
-from __future__ import annotations
-
 import contextlib
 import io
 import os

@@ -1,7 +1,5 @@
 """Command-line interface for the A/B interface chain model."""
 
-from __future__ import annotations
-
 import argparse
 
 from .config import ModelConfig
