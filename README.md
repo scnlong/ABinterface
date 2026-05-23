@@ -81,6 +81,9 @@ After installation:
 ```bash
 abinterface-gui
 ```
+You will see interface
+
+![](doc/figure/screenshot.png)
 
 Without installation:
 

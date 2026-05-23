@@ -16,3 +16,7 @@ __pycache__
 *.aux
 *.out
 *.toc
+
+# output 
+abinterface_gui_output
+abinterface_model.egg-info
