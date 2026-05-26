@@ -94,12 +94,6 @@ You will see an interface similar to:
 
 ![](doc/figure/screenshot.png)
 
-Without installation:
-
-```bash
-PYTHONPATH=. python -m ABinterface.gui
-```
-
 The GUI exposes the same model parameters as the CLI.  It uses a tabbed layout:
 
 ```text
