@@ -160,10 +160,3 @@ The standard outputs are:
 `*_pathway_projected_occupations.png` is a diagnostic plot for selected projected occupations. 
 It helps check whether the coherent elementary channels generate a chain-like 
 redistribution pattern.
-
-## Tests
-
-```bash
-pip install -e .[dev]
-pytest
-```
