@@ -45,11 +45,14 @@ ABinterface/
 pip install -e .
 ```
 
-or run without installation from the repository root:
+after installation, run with 
 
 ```bash
-PYTHONPATH=. python -m ABinterface --help
+ABinterface-run --help
 ```
+
+to check for usage instructions.
+
 ## Documentation
 
 A detailed theoretical and usage manual is available in:
@@ -95,12 +98,6 @@ Without installation:
 
 ```bash
 PYTHONPATH=. python -m ABinterface.gui
-```
-
-On Linux, install Tk support if needed:
-
-```bash
-sudo apt install python3-tk
 ```
 
 The GUI exposes the same model parameters as the CLI.  It uses a tabbed layout:
