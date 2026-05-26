@@ -6,9 +6,7 @@ The code does not hard-code a single sequential trajectory such as
 
     A_v up -> A_c up -> A_c down -> B_c down -> B_v down
 
-Instead, it exposes independent optical, SOC-mixing, interlayer-transfer, and
-relaxation channels.  Under suitable parameters, their combined density-matrix
-dynamics can be interpreted as an emergent chain-like redistribution pattern.
+Instead, it exposes independent coherent optical, SOC-mixing, and interlayer-transfer channels.  Under suitable parameters, their combined density-matrix dynamics can be interpreted as an emergent chain-like redistribution pattern.
 
 The default model separates three effects:
 
@@ -19,13 +17,10 @@ The default model separates three effects:
 2. spin-conserving interlayer transfer:
    - A_c,s <-> B_c,s is the primary interface channel;
 
-3. post-pulse intramaterial c -> v relaxation:
-   - B_c down can relax into B_v down, while A and B also have their own
-     spin-conserving c -> v relaxation channels.
+3. coherent short-time post-pulse evolution:
+   - after the laser pulse, the density matrix continues to evolve unitarily
+     under the static Hamiltonian.
 
-The former impact-excitation branch has been removed from the main model.  It
-was too phenomenological for the present short-time elementary-channel model and
-tended to obscure the interpretation of projected occupations.
 
 No independent spin-splitting input parameters are exposed.
 """
@@ -53,11 +48,14 @@ class ModelConfig:
     bandwidth_v_B: float = 0.65
     bandwidth_c_B: float = 0.65
 
-    # Material-internal SOC.  These are energy scales in eV.
-    # Diagonal splittings are derived from these values.  The sign convention
-    # is fixed internally so that spin-down CBM is above spin-up CBM by default.
-    lambda_soc_A: float = 0.05
-    lambda_soc_B: float = 0.05
+    # Material-internal SOC.  These are signed energy scales in eV.
+    # Diagonal splittings are derived directly from these values:
+    #   E_up = E0 + lambda_soc/2
+    #   E_dn = E0 - lambda_soc/2
+    # Negative defaults preserve the previous default ordering
+    # spin-down above spin-up, but the ordering is now user-controlled by sign.
+    lambda_soc_A: float = -0.05
+    lambda_soc_B: float = -0.05
 
     # Coherent intramaterial SOC spin mixing.  These are off-diagonal
     # up<->down matrix elements in eV, applied within each material and band
@@ -89,14 +87,6 @@ class ModelConfig:
     optical_energy_width_B: float | None = None
     band_overlap_width: float = 2.5
 
-    # Phenomenological post-pulse rates.
-    # W_downhill applies to spin-conserving interlayer c-c/v-v downhill
-    # transfer channels derived from the interlayer hopping matrix.
-    W_downhill: float = 0.01
-    W_intra: float = 0.03
-    W_intra_A: float | None = None
-    W_intra_B: float | None = None
-
     # Time propagation.
     t_final: float = 70.0
     dt: float = 0.02
@@ -126,10 +116,6 @@ class ModelConfig:
             self.optical_energy_width_A = self.optical_energy_width
         if self.optical_energy_width_B is None:
             self.optical_energy_width_B = self.optical_energy_width
-        if self.W_intra_A is None:
-            self.W_intra_A = self.W_intra
-        if self.W_intra_B is None:
-            self.W_intra_B = self.W_intra
         if self.compare_time_ref is None:
             self.compare_time_ref = self.pulse_duration
         if self.compare_time_1 is None:

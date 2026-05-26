@@ -1,4 +1,4 @@
-"""Hamiltonian construction for the A/B interface chain model.
+"""Hamiltonian construction for the coherent A/B interface model.
 
 Compared with the earlier interface-SOC model, this version does not use a
 direct A_c_up <-> B_v_down spin-flip interface hopping as the default mechanism.
@@ -12,8 +12,7 @@ Instead, the Hamiltonian contains elementary coherent couplings:
     3. spin-conserving interlayer A_c,s <-> B_c,s hopping;
     4. laser-driven spin-conserving intramaterial v <-> c excitation.
 
-The chain-like pathway is an optional interpretation of the resulting projected
-occupation dynamics, not an imposed algorithmic rule.
+The chain-like pathway is an optional interpretation of short-time coherent projected occupation dynamics, not an imposed algorithmic rule.
 """
 
 import numpy as np
@@ -69,7 +68,7 @@ def add_intramaterial_soc_mixing(H: np.ndarray, config: ModelConfig) -> np.ndarr
 
     The conduction-band mixing allows coherent transfer of projected occupation
     between up-like and down-like CB components.  It can support an
-    Ac_up-to-Ac_down interpretation in suitable parameter regimes, but the code
+    Ac_up-to-Ac_down coherent-mixing interpretation in suitable parameter regimes, but the code
     propagates the full density matrix and does not tag individual electrons.
     """
     N = config.N

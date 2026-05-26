@@ -37,10 +37,10 @@ def dipole_matrix_element(
     delta_e: float,
     config: ModelConfig,
 ) -> float:
-    """Return state-dependent optical/relaxation matrix-element amplitude.
+    """Return state-dependent optical matrix-element amplitude.
 
     The same hierarchy is reused for optical excitation and intramaterial
-    relaxation.  This keeps the model compact and avoids a separate artificial
+    coherent dynamics.  This keeps the model compact and avoids a separate artificial
     band-spreading parameter.
 
     Index convention:

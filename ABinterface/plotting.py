@@ -233,19 +233,6 @@ def plot_all(result: SimulationResult) -> None:
     fig.tight_layout()
     _savefig(fig, f"{config.output_prefix}_projection_vs_eigen_occupation.png")
 
-    fig, ax = plt.subplots(figsize=(7.2, 4.5))
-    ax.plot(t, col(data, keys, "interlayer_rate")[ind], label="spin-conserving interlayer rate")
-    ax.plot(t, col(data, keys, "intra_rate")[ind], label="intra c→v rate")
-    ax.plot(t, col(data, keys, "interlayer_cumulative")[ind], label="cumulative interlayer")
-    ax.plot(t, col(data, keys, "intra_cumulative")[ind], label="cumulative intra c→v")
-    mark(ax)
-    ax.set_xlabel("time / fs")
-    ax.set_ylabel("rate / cumulative count")
-    ax.set_title("Post-pulse interlayer/intramaterial diagnostics")
-    ax.legend(frameon=False)
-    fig.tight_layout()
-    _savefig(fig, f"{config.output_prefix}_relaxation_diagnostics.png")
-
     np.savetxt(
         f"{config.output_prefix}_observables.csv",
         np.column_stack([times, data]),
@@ -269,13 +256,13 @@ def print_summary(result: SimulationResult) -> None:
     print("Model summary")
     print("-------------")
     print("A/B bands are non-matching by construction.")
-    print("Interpretation target: A_v up -> A_c up -> A_c down -> B_c down -> B_v down (not hard-coded)")
+    print("Short-time coherent Elk-like toy-model reduction.")
     print(f"A: gap={config.gap_A}, offset={config.offset_A}, bw_v={config.bandwidth_v_A}, bw_c={config.bandwidth_c_A}")
     print(f"B: gap={config.gap_B}, offset={config.offset_B}, bw_v={config.bandwidth_v_B}, bw_c={config.bandwidth_c_B}")
-    print(f"Material SOC: lambda_soc_A={config.lambda_soc_A}, lambda_soc_B={config.lambda_soc_B}")
-    print(f"SOC-derived diagonal spin splitting: split_A={split_A:.6g} eV; split_B={split_B:.6g} eV")
+    print(f"Signed material SOC: lambda_soc_A={config.lambda_soc_A}, lambda_soc_B={config.lambda_soc_B}")
+    print(f"SOC-derived signed diagonal spin splitting: split_A={split_A:.6g} eV; split_B={split_B:.6g} eV")
     print(f"SOC mixing: A_CB={config.soc_mix_cb_A}, B_CB={config.soc_mix_cb_B}, A_VB={config.soc_mix_vb_A}, B_VB={config.soc_mix_vb_B}")
-    print(f"Interlayer spin-conserving hopping: tAB_cc={config.tAB}, tAB_vv={config.tAB_vv}")
+    print(f"Coherent spin-conserving interlayer hopping: tAB_cc={config.tAB}, tAB_vv={config.tAB_vv}")
 
     A_vbm_up = idx_A_up(nv - 1, N)
     A_vbm_dn = idx_A_dn(nv - 1, N)
@@ -302,17 +289,6 @@ def print_summary(result: SimulationResult) -> None:
     print(f"  B CBM dn - B CBM up = {energies[B_cbm_dn] - energies[B_cbm_up]:.6g} eV")
     print(f"  min(B CBM) - max(A CBM) = {min(energies[B_cbm_up], energies[B_cbm_dn]) - max(energies[A_cbm_up], energies[A_cbm_dn]):.6g} eV")
     print(f"  min(B VBM) - max(A VBM) = {min(energies[B_vbm_up], energies[B_vbm_dn]) - max(energies[A_vbm_up], energies[A_vbm_dn]):.6g} eV")
-
-    print(f"number of spin-conserving interlayer transfer channels = {len(result.diagnostics['interlayer_channels'])}")
-    print(f"number of intramaterial c->v channels = {len(result.diagnostics['intra_channels'])}")
-    print(f"W_intra_A = {config.W_intra_A}; W_intra_B = {config.W_intra_B}")
-    intra = result.diagnostics["intra_channels"]
-    if intra:
-        rates = np.asarray([float(ch["rate"]) for ch in intra])
-        print("Intramaterial c->v channel-rate diagnostics:")
-        print(f"  min rate = {rates.min():.6g} 1/fs")
-        print(f"  median rate = {np.median(rates):.6g} 1/fs")
-        print(f"  max rate = {rates.max():.6g} 1/fs")
 
     idx_ref = result.diagnostics["compare_indices"][0]
     rho_ref = result.diagnostics["rho_snapshots"][idx_ref]

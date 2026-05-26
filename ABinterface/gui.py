@@ -1,4 +1,4 @@
-"""Tkinter desktop GUI for the A/B interface chain model.
+"""Tkinter desktop GUI for the coherent A/B interface model.
 
 This version uses a tabbed, two-column layout rather than one long vertical
 scrolling form.  It is easier to use on normal laptop screens and keeps the
@@ -181,8 +181,8 @@ class ABInterfaceGUI(tk.Tk):
                 ("bandwidth_c_B", d.bandwidth_c_B, "B conduction bandwidth.", "float", None, (0.0, 3.0)),
             ]),
             ("SOC + Interlayer", [
-                ("lambda_soc_A", d.lambda_soc_A, "SOC diagonal splitting scale for A in eV.", "float", None, (0.0, 0.5)),
-                ("lambda_soc_B", d.lambda_soc_B, "SOC diagonal splitting scale for B in eV.", "float", None, (0.0, 0.5)),
+                ("lambda_soc_A", d.lambda_soc_A, "Signed SOC splitting for A. Negative: spin-down above spin-up.", "float", None, (-0.5, 0.5)),
+                ("lambda_soc_B", d.lambda_soc_B, "Signed SOC splitting for B. Negative: spin-down above spin-up.", "float", None, (-0.5, 0.5)),
                 ("soc_mix_cb_A", d.soc_mix_cb_A, "A CB up/down SOC mixing in eV.", "float", None, (0.0, 0.2)),
                 ("soc_mix_cb_B", d.soc_mix_cb_B, "B CB up/down SOC mixing in eV.", "float", None, (0.0, 0.2)),
                 ("soc_mix_vb_A", d.soc_mix_vb_A, "A VB up/down SOC mixing in eV.", "float", None, (0.0, 0.1)),
@@ -202,13 +202,9 @@ class ABInterfaceGUI(tk.Tk):
                 ("optical_energy_width", d.optical_energy_width, "Fallback optical width.", "float", None, (0.0, 10.0)),
                 ("optical_energy_width_A", d.optical_energy_width_A, "A-specific width; blank means fallback.", "float", None, (0.0, 10.0)),
                 ("optical_energy_width_B", d.optical_energy_width_B, "B-specific width; blank means fallback.", "float", None, (0.0, 10.0)),
-                ("band_overlap_width", d.band_overlap_width, "Band-edge overlap width.", "float", None, (0.1, 20.0)),
+                ("band_overlap_width", d.band_overlap_width, "Band-edge overlap width for optical couplings.", "float", None, (0.1, 20.0)),
             ]),
-            ("Rates + Time", [
-                ("W_downhill", d.W_downhill, "Interlayer downhill transfer rate scale.", "float", None, (0.0, 1.0)),
-                ("W_intra", d.W_intra, "Default c->v relaxation rate scale.", "float", None, (0.0, 1.0)),
-                ("W_intra_A", d.W_intra_A, "A-specific c->v rate; blank means W_intra.", "float", None, (0.0, 1.0)),
-                ("W_intra_B", d.W_intra_B, "B-specific c->v rate; blank means W_intra.", "float", None, (0.0, 1.0)),
+            ("Time", [
                 ("t_final", d.t_final, "Final time in fs.", "float", None, (1.0, 300.0)),
                 ("dt", d.dt, "Time step in fs.", "float", None, (0.001, 0.2)),
                 ("compare_time_ref", d.compare_time_ref, "Reference time; blank means pulse end.", "float", None, (0.0, 300.0)),
@@ -292,10 +288,6 @@ class ABInterfaceGUI(tk.Tk):
             optical_energy_width_A=self._parse_float("optical_energy_width_A"),
             optical_energy_width_B=self._parse_float("optical_energy_width_B"),
             band_overlap_width=float(self._parse_float("band_overlap_width")),
-            W_downhill=float(self._parse_float("W_downhill")),
-            W_intra=float(self._parse_float("W_intra")),
-            W_intra_A=self._parse_float("W_intra_A"),
-            W_intra_B=self._parse_float("W_intra_B"),
             t_final=float(self._parse_float("t_final")),
             dt=float(self._parse_float("dt")),
             compare_time_ref=self._parse_float("compare_time_ref"),

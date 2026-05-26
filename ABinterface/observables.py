@@ -86,10 +86,6 @@ def observable_keys() -> list[str]:
         "eig_occ_low",
         "eig_occ_high",
         "eig_energy",
-        "interlayer_rate",
-        "interlayer_cumulative",
-        "intra_rate",
-        "intra_cumulative",
     ]
 
 
@@ -97,15 +93,9 @@ def collect_observables(
     rho: np.ndarray,
     evals_static: np.ndarray,
     evecs_static: np.ndarray,
-    interlayer_cumulative: float,
-    intra_cumulative: float,
     config: ModelConfig,
 ) -> dict[str, float]:
     """Collect all observables at one time."""
     obs = projected_observables(rho, config)
     obs.update(eigen_observables(rho, evals_static, evecs_static, 2 * config.N))
-    obs["interlayer_rate"] = 0.0
-    obs["interlayer_cumulative"] = interlayer_cumulative
-    obs["intra_rate"] = 0.0
-    obs["intra_cumulative"] = intra_cumulative
     return obs

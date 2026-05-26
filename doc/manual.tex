@@ -1,0 +1,752 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{longtable}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  urlcolor=blue!55!black,
+  citecolor=blue!55!black
+}
+
+\lstdefinestyle{shellstyle}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible,
+  backgroundcolor=\color{gray!6}
+}
+\lstset{style=shellstyle}
+
+\newcommand{\ket}[1]{\left|#1\right\rangle}
+\newcommand{\bra}[1]{\left\langle #1\right|}
+\newcommand{\braket}[2]{\left\langle #1\middle|#2\right\rangle}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\Tr}{\mathrm{Tr}}
+
+\title{\LARGE{\textbf{ABinterface: Short-Time Coherent A/B Interface Model}}\\
+\vspace{1.0cm}
+\normalsize Theoretical Background, Hamiltonian Definition, Time Propagation, and User Guide}
+\author{Qing-Long Liu}
+\date{}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Purpose and Physical Scope}
+
+ABInterface implements a compact one-particle density-matrix toy model for short-time laser-driven
+carrier and spin redistribution at a non-matching interface between two materials, 
+denoted by $A$ and $B$.  The model is designed for qualitative mechanism analysis 
+rather than quantitative materials prediction.  It is useful when one wants to test 
+whether a set of coherent elementary couplings, including optical excitation,
+spin-orbit-induced spin mixing, and interlayer hopping, can generate a target
+projected-occupation pattern.
+In such a short-time electronic-dynamics picture, 
+the laser excites the electronic system and, after the laser pulse has vanished, 
+the electronic density matrix continues to evolve coherently under the field-free Hamiltonian.  
+Phenomenological electron-phonon relaxation, Boltzmann collision terms, 
+Lindblad baths, or manually imposed downhill rates are not part of the present code.
+\\
+\\
+The code does not track a tagged electron and does not impose a single classical trajectory.  
+A chain-like pattern such as
+\begin{equation}
+A_v\uparrow
+\;\xrightarrow{\text{laser}}\;
+A_c\uparrow
+\;\xrightarrow{\text{SOC mixing}}\;
+A_c\downarrow
+\;\xrightarrow{\text{interlayer hopping}}\;
+B_c\downarrow
+\;\xrightarrow{\text{changes in the }B_v\downarrow\text{ projected occupation}}\;
+B_v\downarrow.
+\end{equation}
+should be interpreted only as an emergent description of projected occupations, 
+\emph{not} hard-coded as a single ordered path.  
+The implemented model contains coherent elementary Hamiltonian couplings: 
+optical excitation, material-internal SOC mixing, and interlayer hopping.
+
+\section{Basis}
+
+Each material and spin block contains $N$ single-particle states.  
+The total Hilbert-space dimension is
+\begin{equation}
+D = 4N.
+\end{equation}
+The basis ordering is
+\begin{equation}
+A_\uparrow,
+\quad
+A_\downarrow,
+\quad
+B_\uparrow,
+\quad
+B_\downarrow.
+\end{equation}
+In each block, the first $N/2$ states are valence-like and 
+the last $N/2$ states are conduction-like.  Therefore $N$ must be even.  In index form,
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Block & Index range & Meaning \\
+\midrule
+$A_\uparrow$ & $0,\ldots,N-1$ & material $A$, spin up \\
+$A_\downarrow$ & $N,\ldots,2N-1$ & material $A$, spin down \\
+$B_\uparrow$ & $2N,\ldots,3N-1$ & material $B$, spin up \\
+$B_\downarrow$ & $3N,\ldots,4N-1$ & material $B$, spin down \\
+\bottomrule
+\end{tabular}
+\end{center}
+Within any block,
+\begin{equation}
+0,\ldots,N/2-1 \quad \text{are valence-like states},
+\end{equation}
+while
+\begin{equation}
+N/2,\ldots,N-1 \quad \text{are conduction-like states}.
+\end{equation}
+\\
+A generic basis state is denoted
+\begin{equation}
+\ket{X,b,m,s},
+\end{equation}
+where \(X\in\{A,B\}\) is the material label, 
+\(b\in\{v,c\}\) is the valence or conduction manifold, 
+\(m\) is a local band-ladder index, and \(s\in\{\uparrow,\downarrow\}\) is the spin label.  
+The index \(m\) is not a magnetic quantum number; it is simply the discrete level index used 
+by the toy model.
+
+\section{Hamiltonian Overview}
+
+The time-dependent density matrix is denoted by $\rho(t)$, and the time-dependent Hamiltonian is
+\begin{equation}
+H(t) = H_{\mathrm{static}} + H_{\mathrm{laser}}(t),
+\end{equation}
+where
+\begin{equation}
+H_{\mathrm{static}}
+=
+H_{\mathrm{bands}}
++
+H_{\mathrm{SOC,mix}}
++
+H_{\mathrm{interlayer}}.
+\end{equation}
+During the laser pulse, \(H_{\mathrm{laser}}(t)\neq 0\).  
+After the pulse, \(H_{\mathrm{laser}}(t)=0\), and the density matrix continues to evolve 
+coherently under \(H_{\mathrm{static}}\).
+\\
+\\
+The model contains the following physical components:
+\begin{enumerate}
+  \item \textbf{No-SOC non-matching bands}: materials $A$ and $B$ have independent gaps, energy offsets, and band widths.
+  \item \textbf{SOC-derived diagonal splitting}: the diagonal spin splitting is controlled by the signed material-internal parameters \(\lambda_{\mathrm{soc},A}\) and \(\lambda_{\mathrm{soc},B}\).
+  \item \textbf{Material-internal SOC mixing}: off-diagonal couplings mix $\uparrow$ and $\downarrow$ components within the same material and band manifold.
+  \item \textbf{Spin-label-conserving interlayer hopping}: the default interlayer hopping couples \(A_c s\leftrightarrow B_c s\), with optional \(A_v s\leftrightarrow B_v s\).
+  \item \textbf{Laser excitation}: The laser field couples valence-like and conduction-like levels within each material.  In the chosen diabatic basis, the explicit optical matrix element does not contain a spin-flip term.  However, the full laser-driven dynamics is not generally spin-conserving, because of the SOC-mixing terms.
+  \item \textbf{Post-pulse processes}: Density matrix continues to evolve coherently in a short-time regime. Carrier redistribution includes material-internal SOC mixing and interlayer hopping. No phenomenological incoherent relaxation, downhill rate, or collision term is included.
+\end{enumerate}
+
+\subsection*{Important Modeling Clarification}
+
+Therefore statements such as
+\begin{equation}
+A_v\uparrow\rightarrow A_c\uparrow\rightarrow A_c\downarrow\rightarrow B_c\downarrow\rightarrow B_v\downarrow
+\end{equation}
+should be read as an \emph{effective pathway interpretation} of projected occupation changes, 
+not as a hard-coded algorithmic transition chain.  
+Directly computed observables are occupations, coherences, and their projections onto material, 
+spin, band, and static-eigenstate subspaces.
+
+\section{No-SOC Band Energies}
+
+The no-SOC band structure is specified by material-dependent gaps, offsets, and bandwidths.  For material $X\in\{A,B\}$, the valence-band maximum and conduction-band minimum before SOC splitting are approximately
+\begin{equation}
+E^{(0)}_{X,\mathrm{VBM}} = \mathrm{offset}_X - \frac{1}{2}\mathrm{gap}_X,
+\end{equation}
+\begin{equation}
+E^{(0)}_{X,\mathrm{CBM}} = \mathrm{offset}_X + \frac{1}{2}\mathrm{gap}_X.
+\end{equation}
+The valence ladder is constructed downward from the VBM:
+\begin{equation}
+E^{(0)}_{X,v,m}=E^{(0)}_{X,\mathrm{VBM}}-\epsilon^{X,v}_m,
+\end{equation}
+where $\epsilon^{X,v}_m$ spans the valence bandwidth.  The conduction ladder is constructed upward from the CBM:
+\begin{equation}
+E^{(0)}_{X,c,n}=E^{(0)}_{X,\mathrm{CBM}}+\epsilon^{X,c}_n,
+\end{equation}
+where $\epsilon^{X,c}_n$ spans the conduction bandwidth.
+
+\section{SOC-Derived Diagonal Splitting}
+
+The code does not expose independent spin-splitting parameters.  Instead, the diagonal SOC splitting is derived from material SOC strengths:
+\begin{equation}
+\lambda_{\mathrm{soc},A},
+\qquad
+\lambda_{\mathrm{soc},B}.
+\end{equation}
+The convention used by the code is
+\begin{equation}
+E_{\uparrow}=E_0+\frac{\Delta}{2},
+\qquad
+E_{\downarrow}=E_0-\frac{\Delta}{2}.
+\end{equation}
+The diagonal SOC splitting is signed and is taken directly from the input parameters:
+\begin{equation}
+\Delta_A = \lambda_{\mathrm{soc},A},
+\qquad
+\Delta_B = \lambda_{\mathrm{soc},B}.
+\end{equation}
+The code uses the convention
+\begin{equation}
+E_{X,\uparrow}=E^{(0)}_X+\frac{\Delta_X}{2},
+\qquad
+E_{X,\downarrow}=E^{(0)}_X-\frac{\Delta_X}{2}.
+\label{eq:E_i}
+\end{equation}
+Therefore a negative \(\lambda_{\mathrm{soc},X}\) places the spin-down level above the spin-up level, while a positive \(\lambda_{\mathrm{soc},X}\) places the spin-up level above the spin-down level.  The default values are negative.
+
+\section{Hamiltonian Terms}
+
+\subsection{Band Hamiltonian}
+
+The diagonal band Hamiltonian is
+\begin{equation}
+H_{\mathrm{bands}} = \sum_i E_i \ket{i}\bra{i},
+\end{equation}
+where $\ket{i}$ is a diabatic basis state such as $\ket{A,c,n,\uparrow}$ or $\ket{B,v,m,\downarrow}$.  
+The diagonal energies $E_i$ are obtained from \eqref{eq:E_i}. 
+
+\subsection{Material-Internal SOC Mixing}
+
+Diagonal SOC splitting alone does not transfer population between spin channels.  To realize the step like
+\begin{equation}
+A_c\uparrow \rightarrow A_c\downarrow,
+\end{equation}
+the model includes off-diagonal material-internal SOC mixing.  In the simplest same-band-index form,
+\begin{equation}
+H_{\mathrm{SOC,mix}} =
+\sum_{X=A,B}\sum_{b=v,c}\sum_m
+\Omega_{X,b}
+\ket{X,b,m,\downarrow}\bra{X,b,m,\uparrow}
++\mathrm{h.c.}
+\end{equation}
+Here \(X\in\{A,B\}\) is the material label, \(b\in\{v,c\}\) is the band-manifold label, and \(m\) is the local band-ladder index inside that material and band manifold.  The index \(m\) is not a magnetic quantum number; it is simply the discrete level index of the toy-model valence or conduction ladder.  For each fixed \(X\), \(b\), and \(m\), this term couples the spin-up-like and spin-down-like components of the same local band-ladder state.
+
+The coefficient \(\Omega_{X,b}\) is the material- and band-dependent SOC spin-mixing amplitude.  In the present implementation, it is independent of \(m\) within a given \((X,b)\) block.  A more detailed model could use an \(m\)-dependent coefficient \(\Omega_{X,b,m}\), but that is not part of the current code.
+
+The corresponding software parameters are
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Parameter & Meaning \\
+\midrule
+\texttt{soc\_mix\_cb\_A} & \(\Omega_{A,c}\), $A$ conduction-band up/down SOC mixing \\
+\texttt{soc\_mix\_cb\_B} & \(\Omega_{B,c}\), $B$ conduction-band up/down SOC mixing \\
+\texttt{soc\_mix\_vb\_A} & \(\Omega_{A,v}\), $A$ valence-band up/down SOC mixing \\
+\texttt{soc\_mix\_vb\_B} & \(\Omega_{B,v}\), $B$ valence-band up/down SOC mixing \\
+\bottomrule
+\end{tabular}
+\end{center}
+The conduction-band mixing parameters are especially important because they allow the elementary spin-mixing step like
+\begin{equation}
+A_c\uparrow \rightarrow A_c\downarrow.
+\end{equation}
+They also allow SOC-mixed $B_c$ states, so occupation accumulated in $B_c\downarrow$ can indirectly affect $B_c\uparrow$ optical availability through mixed eigenstates.
+
+\subsection{Spin-Label-Conserving Interlayer Hopping}
+
+The interlayer hopping matrix is diagonal in the diabatic spin label.
+The code does not implement a direct interlayer spin-flip term of the form 
+\(A_c\uparrow\leftrightarrow B_v\downarrow\).  Instead, it allows hopping between states 
+with the same spin and the same band-manifold type:
+\begin{equation}
+A_{b,m,s}
+\leftrightarrow
+B_{b,n,s},
+\qquad
+b\in\{c,v\},
+\qquad
+s\in\{\uparrow,\downarrow\}.
+\end{equation}
+Here \(b=c\) denotes conduction-manifold hopping and \(b=v\) denotes valence-manifold hopping.  The indices \(m\) and \(n\) are local band-ladder indices in materials \(A\) and \(B\), respectively.  They are not magnetic quantum numbers.  They label the discrete levels inside the toy-model valence or conduction ladder.
+
+The general same-manifold interlayer Hamiltonian can be written as
+\begin{equation}
+H_{\mathrm{interlayer}}
+=
+\sum_{b\in\{c,v\}}
+\sum_{m,n,s}
+T^{(b)}_{mn,s}
+\ket{B,b,n,s}\bra{A,b,m,s}
++
+\mathrm{h.c.}
+\end{equation}
+The hopping matrix element is modeled as
+\begin{equation}
+T^{(b)}_{mn,s}
+=
+t^{(b)}_{AB}
+F_{\mathrm{band}}^{(b)}(m,n)
+F_E^{(b)}(m,n,s).
+\end{equation}
+The band-dependent hopping scale is
+\begin{equation}
+t^{(c)}_{AB}=\texttt{tAB},
+\qquad
+t^{(v)}_{AB}=\texttt{tAB\_vv}.
+\end{equation}
+Thus \texttt{tAB} controls conduction-conduction hopping,
+\begin{equation}
+A_{c,m,s}\leftrightarrow B_{c,n,s},
+\end{equation}
+whereas \texttt{tAB\_vv} controls valence-valence hopping,
+\begin{equation}
+A_{v,m,s}\leftrightarrow B_{v,n,s}.
+\end{equation}
+The default value is \(\texttt{tAB\_vv}=0\), so the default model mainly uses conduction-conduction interlayer hopping.  Nevertheless, the code structure is not restricted to \(c-c\) hopping; valence-valence hopping is present as an optional same-spin, same-manifold channel.
+
+The band-index filter is
+\begin{equation}
+F_{\mathrm{band}}^{(b)}(m,n)
+=
+\exp\left[
+-\frac{
+\left(d^{A}_{b,m}-d^{B}_{b,n}\right)^2
+}{
+2w_{\mathrm{inter}}^2
+}
+\right].
+\end{equation}
+Here
+\begin{equation}
+w_{\mathrm{inter}}
+=
+\texttt{interface\_band\_width}.
+\end{equation}
+The quantities \(d^{A}_{b,m}\) and \(d^{B}_{b,n}\) are distances from the relevant band edge, measured in band-index space.  For conduction states,
+\begin{equation}
+d^{X}_{c,m}=0
+\end{equation}
+means the CBM-like state of material \(X\), while \(d^{X}_{c,m}=1,2,\ldots\) denote higher conduction states farther from the CBM.  For valence states,
+\begin{equation}
+d^{X}_{v,m}=0
+\end{equation}
+means the VBM-like state of material \(X\), while \(d^{X}_{v,m}=1,2,\ldots\) denote deeper valence states farther below the VBM.  Therefore, \texttt{interface\_band\_width} controls how selectively the interface couples band-edge states to corresponding band-edge states.  A small value makes the hopping strongly concentrated between states with similar distance from the relevant band edge, while a large value allows more remote band-ladder states to couple.
+
+The energy-mismatch filter is
+\begin{equation}
+F_E^{(b)}(m,n,s)
+=
+\exp\left[
+-\frac{
+\left(\Delta E^{(b)}_{mn,s}\right)^2
+}{
+2\sigma_{\mathrm{hyb}}^2
+}
+\right],
+\end{equation}
+with
+\begin{equation}
+\sigma_{\mathrm{hyb}}
+=
+\texttt{hybrid\_energy\_width},
+\end{equation}
+and
+\begin{equation}
+\Delta E^{(b)}_{mn,s}
+=
+E_{A,b,m,s}
+-
+E_{B,b,n,s}.
+\end{equation}
+Thus \(\Delta E^{(b)}_{mn,s}\) is the energy mismatch between the two same-spin states that are being coupled across the interface.  A small \texttt{hybrid\_energy\_width} suppresses hopping between energetically mismatched A/B states, while a large value makes the interface hopping less sensitive to this mismatch.
+
+Combining these definitions, the explicit matrix element is
+\begin{equation}
+T^{(b)}_{mn,s}
+=
+t^{(b)}_{AB}
+\exp\left[
+-\frac{
+\left(d^{A}_{b,m}-d^{B}_{b,n}\right)^2
+}{
+2\,\texttt{interface\_band\_width}^{\,2}
+}
+\right]
+\exp\left[
+-\frac{
+\left(E_{A,b,m,s}-E_{B,b,n,s}\right)^2
+}{
+2\,\texttt{hybrid\_energy\_width}^{\,2}
+}
+\right].
+\end{equation}
+
+The correspondence between the formula and the user-facing parameters is therefore:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Symbol & Input parameter or code-generated quantity \\
+\midrule
+\(t^{(c)}_{AB}\) & \texttt{tAB} \\
+\(t^{(v)}_{AB}\) & \texttt{tAB\_vv} \\
+\(w_{\mathrm{inter}}\) & \texttt{interface\_band\_width} \\
+\(\sigma_{\mathrm{hyb}}\) & \texttt{hybrid\_energy\_width} \\
+\(d^{X}_{b,m}\) & band-edge distance of state \((X,b,m)\), generated from the local band index \\
+\(\Delta E^{(b)}_{mn,s}\) & \(E_{A,b,m,s}-E_{B,b,n,s}\), generated from the spin-resolved diagonal energies \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This interlayer Hamiltonian is part of the static Hamiltonian and therefore contributes to the unitary, coherent part of the dynamics.
+
+\section{Laser Pulse and Optical Coupling}
+
+The laser is represented by an intra-material coupling between valence-like and conduction-like levels.  
+In the chosen diabatic basis, the explicit optical matrix element is diagonal in the spin label:
+\begin{equation}
+X_v s \leftrightarrow X_c s,
+\qquad
+X\in\{A,B\},\quad s\in\{\uparrow,\downarrow\}.
+\end{equation}
+This does not imply conservation of the spin projection during the full time evolution, because $H_{\mathrm{SOC,mix}})$ is present during and after the pulse.
+The laser Hamiltonian is
+\begin{equation}
+H_{\mathrm{laser}}(t)
+=
+F(t)
+\sum_{X,m,n,s}
+ d^X_{mn}
+\ket{X,c,n,s}\bra{X,v,m,s}
++\mathrm{h.c.}
+\end{equation}
+
+\subsection{Pulse Shape}
+
+In full-carrier mode,
+\begin{equation}
+F(t)=A_0
+\sin^2\left(\frac{\pi t}{T_{\mathrm{pulse}}}\right)
+\cos\left(\frac{\omega t}{\hbar}\right),
+\qquad
+0<t<T_{\mathrm{pulse}}.
+\end{equation}
+Outside the pulse window, $F(t)=0$.  In RWA/envelope mode, the rapidly oscillating carrier factor is removed. The drive is still time-dependent and follows the pulse envelope, \(F(t)=A_0\sin^2(\pi t/T_{\mathrm{pulse}})\).
+
+\subsection{Optical Matrix Elements}
+
+The optical matrix element is modeled as
+\begin{equation}
+d^X_{mn}=d^X_0 F_{\mathrm{res}}(E_c-E_v)F_{\mathrm{edge}}(m,n).
+\end{equation}
+The resonance factor is
+\begin{equation}
+F_{\mathrm{res}}=
+\exp\left[-\frac{(E_c-E_v-\hbar\omega)^2}{2\sigma_{\mathrm{opt},X}^2}\right].
+\end{equation}
+The edge-overlap factor uses distances from CBM and VBM.  If $d_c=0$ denotes the CBM and $d_v=0$ denotes the VBM, then
+\begin{equation}
+F_{\mathrm{edge}}
+=
+\exp\left[-\frac{(d_c-d_v)^2}{2w_{\mathrm{band}}^2}\right].
+\end{equation}
+This definition intentionally couples CBM-like states most strongly to VBM-like states and avoids the earlier unphysical pairing of CBM with the deepest valence states.
+
+
+\subsection{Optical Matrix-Element Formula and Input-Parameter Mapping}
+
+Combining the resonance and band-edge overlap factors, the optical matrix element used by the laser term can be written as
+\begin{equation}
+d^X_{mn}
+=
+d^X_0
+\exp\left[
+	-\frac{(E_{X,c,n,s}-E_{X,v,m,s}-\hbar\omega)^2}{2\sigma_{\mathrm{opt},X}^2}
+\right]
+\exp\left[
+	-\frac{(d_{c,n}-d_{v,m})^2}{2w_{\mathrm{band}}^2}
+\right],
+\end{equation}
+where $X=A$ or $B$.  The correspondence between the symbols in this expression and the software inputs is:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Symbol & Input parameter or generated quantity \\
+\midrule
+$X$ & material label, either $A$ or $B$ \\
+$d^A_0$ & \texttt{dA0} \\
+$d^B_0$ & \texttt{dB0} \\
+$\hbar\omega$ & \texttt{omega\_eV} \\
+$\sigma_{\mathrm{opt},A}$ & \texttt{optical\_energy\_width\_A}, or fallback \texttt{optical\_energy\_width} \\
+$\sigma_{\mathrm{opt},B}$ & \texttt{optical\_energy\_width\_B}, or fallback \texttt{optical\_energy\_width} \\
+$w_{\mathrm{band}}$ & \texttt{band\_overlap\_width} \\
+$E_c,E_v$ & generated from gaps, offsets, bandwidths, and SOC-derived diagonal splitting \\
+$d_c,d_v$ & generated from local band indices relative to CBM and VBM \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For a conduction state, $d_c$ is the distance from the CBM in band-index space:
+\begin{equation}
+\mathrm{CBM}\rightarrow d_c=0,\qquad
+\mathrm{next\ CB}\rightarrow d_c=1,\qquad
+\mathrm{next\ CB}\rightarrow d_c=2,\ldots
+\end{equation}
+For a valence state, $d_v$ is the distance from the VBM:
+\begin{equation}
+\mathrm{VBM}\rightarrow d_v=0,\qquad
+\mathrm{next\ lower\ VB}\rightarrow d_v=1,\qquad
+\mathrm{next\ lower\ VB}\rightarrow d_v=2,\ldots
+\end{equation}
+Thus \texttt{band\_overlap\_width} controls how strongly VBM-like states couple to CBM-like states and how quickly this coupling falls off for mismatched band-edge distances.
+
+The state energies $E_c$ and $E_v$ are not direct user inputs.  They are generated by the band model from
+\begin{equation}
+\{\texttt{gap},\texttt{offset},\texttt{bandwidth\_v},\texttt{bandwidth\_c},\lambda_{\mathrm{soc}}\}.
+\end{equation}
+Consequently, increasing \texttt{dA0} or \texttt{dB0} increases the material-specific optical coupling scale, but it does not by itself guarantee strong excitation.  The transition must also be close enough to resonance with \texttt{omega\_eV} and sufficiently allowed by the band-index overlap factor.
+
+In compact form, the optical coupling is controlled by four distinct ingredients:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Input & Role \\
+\midrule
+\texttt{dA0}, \texttt{dB0} & material-dependent optical coupling scale \\
+\texttt{omega\_eV} & photon energy \\
+\texttt{optical\_energy\_width}, \texttt{optical\_energy\_width\_A/B} & resonance energy window \\
+\texttt{band\_overlap\_width} & band-index overlap window \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Initial State}
+
+The initial state is not a manually filled diabatic valence configuration.  Instead, the software constructs the full static Hamiltonian
+\begin{equation}
+H_{\mathrm{static}}=H_{\mathrm{bands}}+H_{\mathrm{SOC,mix}}+H_{\mathrm{interlayer}},
+\end{equation}
+diagonalizes it,
+\begin{equation}
+H_{\mathrm{static}}\ket{\phi_n}=\varepsilon_n\ket{\phi_n},
+\end{equation}
+and fills the lowest $2N$ static eigenstates:
+\begin{equation}
+\rho(0)=\sum_{n=1}^{2N}\ket{\phi_n}\bra{\phi_n}.
+\end{equation}
+This avoids a spurious quench at $t=0$ and ensures that the initial density matrix already includes static interlayer and SOC hybridization.
+
+\section{Coherent Time Propagation}
+
+During each time step, the Hamiltonian is evaluated at the midpoint:
+\begin{equation}
+H_{\mathrm{mid}}=H\left(t+\frac{\Delta t}{2}\right).
+\end{equation}
+The unitary propagator is
+\begin{equation}
+U(t+\Delta t,t)
+=
+\exp\left[-\frac{ii}{\hbar}H_{\mathrm{mid}}\Delta t\right].
+\end{equation}
+The density matrix is updated by
+\begin{equation}
+\rho(t+\Delta t)=U\rho(t)U^\dagger.
+\end{equation}
+The implementation computes the exponential by diagonalizing the Hermitian midpoint Hamiltonian:
+\begin{equation}
+H_{\mathrm{mid}}=V\epsilon V^\dagger,
+\qquad
+U=V\exp\left[-\frac{i\epsilon\Delta t}{\hbar}\right]V^\dagger.
+\end{equation}
+For the small matrices used in this toy model, direct dense diagonalization is transparent and sufficiently fast.
+
+
+\section{Observables and Output Files}
+
+The software outputs several time-dependent observables.  The most important are:
+\begin{itemize}[leftmargin=2em]
+  \item material- and spin-projected occupations: $N_{A\uparrow}$, $N_{A\downarrow}$, $N_{B\uparrow}$, $N_{B\downarrow}$;
+  \item selected projected occupations used to diagnose chain-like redistribution: \(A_v\uparrow\), \(A_c\uparrow\), \(A_c\downarrow\), \(B_c\downarrow\), \(B_v\downarrow\), and \(B_c\uparrow\);
+  \item total spin projections $N_\uparrow$ and $N_\downarrow$;
+  \item a magnetic-moment proxy $M=N_\uparrow-N_\downarrow$;
+  \item valence and conduction occupation sums;
+  \item static eigenbasis low/high occupations;
+  \item state-resolved occupation changes relative to pulse end.
+\end{itemize}
+
+The standard output files include
+\begin{lstlisting}
+*_projected_material_spin.png
+*_pathway_projected_occupations.png
+*_projected_spin.png
+*_projected_magnetic_moment.png
+*_projection_vs_eigen_occupation.png
+*_observables.csv
+*_state_occupation_change_from_pulse_end_levels.png
+*_state_occupation_change_from_pulse_end_levels.csv
+\end{lstlisting}
+The selected-projection plot is a diagnostic for whether the coherent elementary 
+channels produce a chain-like redistribution pattern in projected occupations.
+It indicates whether the coherent elementary channels generate a chain-like 
+redistribution pattern.
+
+
+\section{Parameter Reference}
+
+\subsection{Band Parameters}
+
+\begin{longtable}{p{0.30\textwidth}p{0.62\textwidth}}
+\toprule
+Parameter & Meaning \\
+\midrule
+\texttt{N} & Number of states per material and spin block.  Must be even. \\
+\texttt{gap\_A}, \texttt{gap\_B} & No-SOC band gaps of materials $A$ and $B$. \\
+\texttt{offset\_A}, \texttt{offset\_B} & Rigid energy shifts of the no-SOC spectra. \\
+\texttt{bandwidth\_v\_A}, \texttt{bandwidth\_v\_B} & Valence bandwidths. \\
+\texttt{bandwidth\_c\_A}, \texttt{bandwidth\_c\_B} & Conduction bandwidths. \\
+\bottomrule
+\end{longtable}
+
+\subsection{SOC Parameters}
+
+\begin{longtable}{p{0.30\textwidth}p{0.62\textwidth}}
+\toprule
+Parameter & Meaning \\
+\midrule
+\texttt{lambda\_soc\_A}, \texttt{lambda\_soc\_B} & Signed material-internal SOC scales used directly as diagonal spin splitting. Negative values place spin-down above spin-up; positive values place spin-up above spin-down. \\
+\texttt{soc\_mix\_cb\_A}, \texttt{soc\_mix\_cb\_B} & Off-diagonal up/down SOC mixing in conduction bands. \\
+\texttt{soc\_mix\_vb\_A}, \texttt{soc\_mix\_vb\_B} & Off-diagonal up/down SOC mixing in valence bands. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Interlayer Parameters}
+
+\begin{longtable}{p{0.30\textwidth}p{0.62\textwidth}}
+\toprule
+Parameter & Meaning \\
+\midrule
+\texttt{tAB} & Spin-label-conserving $A_c s\leftrightarrow B_c s$ hopping scale. \\
+\texttt{tAB\_vv} & Optional spin-label-conserving $A_v s\leftrightarrow B_v s$ hopping scale. \\
+\texttt{interface\_band\_width} & Band-index overlap width for interlayer hopping. \\
+\texttt{hybrid\_energy\_width} & Energy mismatch width for interlayer hopping. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Laser Parameters}
+
+\begin{longtable}{p{0.30\textwidth}p{0.62\textwidth}}
+\toprule
+Parameter & Meaning \\
+\midrule
+\texttt{A0} & Laser amplitude in model units. \\
+\texttt{omega\_eV} & Photon energy $\hbar\omega$ in eV. \\
+\texttt{pulse\_duration} & Pulse duration in fs. \\
+\texttt{carrier} & Either \texttt{full} or \texttt{rwa}. \\
+\texttt{dA0}, \texttt{dB0} & Material-dependent optical coupling scales $d^A_0$ and $d^B_0$ in the optical matrix element. \\
+\texttt{optical\_energy\_width} & Fallback optical resonance width $\sigma_{\mathrm{opt}}$ used when material-specific widths are not supplied. \\
+\texttt{optical\_energy\_width\_A}, \texttt{optical\_energy\_width\_B} & Material-specific optical widths. Blank or \texttt{None} means use the fallback. \\
+\texttt{band\_overlap\_width} & Band-edge overlap width $w_{\mathrm{band}}$ for intra-material matrix elements. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Time Parameters}
+
+\begin{longtable}{p{0.30\textwidth}p{0.62\textwidth}}
+\toprule
+Parameter & Meaning \\
+\midrule
+\texttt{t\_final} & Final simulation time in fs. \\
+\texttt{dt} & Time step in fs. \\
+\texttt{compare\_time\_ref} & Reference time for state-resolved difference plots.  Default is pulse end. \\
+\texttt{compare\_time\_1}, \texttt{compare\_time\_2} & Left and right comparison times for state-resolved level plots. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Plotting Parameters}
+
+\begin{longtable}{p{0.30\textwidth}p{0.62\textwidth}}
+\toprule
+Parameter & Meaning \\
+\midrule
+\texttt{plot\_mode} & Plot either changes (\texttt{delta}) or absolute occupations. \\
+\texttt{max\_plot\_points} & Maximum number of plotted time points.  Does not affect propagation. \\
+\texttt{delta\_color\_scale} & Manual state-resolved color scale for $\Delta n$.  If $\le 0$, an automatic scale is used. \\
+\texttt{delta\_color\_norm} & Either \texttt{linear} or \texttt{symlog}. \\
+\texttt{delta\_color\_percentile} & Percentile used for automatic color scaling. \\
+\texttt{delta\_colormap} & Diverging colormap for state-resolved occupation changes. \\
+\texttt{level\_half\_length}, \texttt{level\_x\_jitter}, \texttt{level\_linewidth}, \texttt{level\_alpha} & Appearance controls for state-resolved energy-level plots. \\
+\bottomrule
+\end{longtable}
+
+\section{Command-Line Usage}
+
+From the repository root, run without installation by setting \texttt{PYTHONPATH}:
+\begin{lstlisting}
+PYTHONPATH=. python -m ABinterface --help
+\end{lstlisting}
+A typical run is
+\begin{lstlisting}
+PYTHONPATH=. python -m ABinterface \
+  --N 12 \
+  --pulse-duration 20 \
+  --t-final 70 \
+  --dt 0.02 \
+  --carrier full \
+  --omega-eV 2.0 \
+  --lambda-soc-A -0.05 \
+  --lambda-soc-B -0.05 \
+  --soc-mix-cb-A 0.02 \
+  --soc-mix-cb-B 0.02 \
+  --tAB 0.08 \
+  --compare-time-1 22 \
+  --compare-time-2 50 \
+  --delta-color-scale 0.08 \
+  --delta-color-norm linear
+\end{lstlisting}
+
+\section{Desktop GUI Usage}
+
+The Tkinter GUI can be launched with
+\begin{lstlisting}
+PYTHONPATH=. python -m ABinterface.gui
+\end{lstlisting}
+or, after installation,
+\begin{lstlisting}
+ABinterface-gui
+\end{lstlisting}
+The GUI uses a tabbed layout:
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Tab & Contents \\
+\midrule
+Bands & Gaps, offsets, bandwidths, and basis size \\
+SOC + Interlayer & Signed material SOC splitting, SOC mixing, interlayer hopping \\
+Laser & Pulse, photon energy, optical matrix elements \\
+Time & Final time, Time step, Comparison times \\
+Plotting & Color scales and Figure appearance \\
+\bottomrule
+\end{tabular}
+\end{center}
+The top bar contains the output directory, \texttt{Run simulation}, \texttt{Reset}, and \texttt{Open output}.  The \texttt{Reset} button restores all parameter widgets to \texttt{ModelConfig} defaults.
+
+
+
+\end{document}

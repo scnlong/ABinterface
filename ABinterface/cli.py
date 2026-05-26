@@ -13,7 +13,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Toy density-matrix model for laser-driven A/B interface redistribution "
-            "with material-internal SOC spin mixing and spin-conserving interlayer transfer."
+            "with material-internal SOC spin mixing and coherent spin-conserving interlayer transfer."
         )
     )
 
@@ -29,8 +29,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--bandwidth-c-B", type=float, default=d.bandwidth_c_B, help="B conduction bandwidth in eV.")
 
     # Material SOC.
-    parser.add_argument("--lambda-soc-A", type=float, default=d.lambda_soc_A, help="Material-internal SOC diagonal splitting scale for A in eV.")
-    parser.add_argument("--lambda-soc-B", type=float, default=d.lambda_soc_B, help="Material-internal SOC diagonal splitting scale for B in eV.")
+    parser.add_argument("--lambda-soc-A", type=float, default=d.lambda_soc_A, help="Signed material-internal SOC diagonal splitting for A in eV. Negative makes spin-down above spin-up.")
+    parser.add_argument("--lambda-soc-B", type=float, default=d.lambda_soc_B, help="Signed material-internal SOC diagonal splitting for B in eV. Negative makes spin-down above spin-up.")
     parser.add_argument("--soc-mix-cb-A", type=float, default=d.soc_mix_cb_A, help="A conduction-band SOC up/down mixing in eV.")
     parser.add_argument("--soc-mix-cb-B", type=float, default=d.soc_mix_cb_B, help="B conduction-band SOC up/down mixing in eV.")
     parser.add_argument("--soc-mix-vb-A", type=float, default=d.soc_mix_vb_A, help="A valence-band SOC up/down mixing in eV.")
@@ -46,19 +46,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--A0", type=float, default=d.A0, help="Laser field amplitude in model units.")
     parser.add_argument("--omega-eV", type=float, default=d.omega_eV, help="Photon energy in eV.")
     parser.add_argument("--pulse-duration", type=float, default=d.pulse_duration, help="Pulse duration in fs.")
-    parser.add_argument("--carrier", choices=["full", "rwa"], default=d.carrier, help="full carrier or envelope-only RWA drive.")
+    parser.add_argument("--carrier", choices=["full", "rwa"], default=d.carrier, help="full carrier or envelope-only drive.")
     parser.add_argument("--dA0", type=float, default=d.dA0, help="Optical dipole scale for A.")
     parser.add_argument("--dB0", type=float, default=d.dB0, help="Optical dipole scale for B.")
     parser.add_argument("--optical-energy-width", type=float, default=d.optical_energy_width, help="Fallback optical resonance width in eV.")
     parser.add_argument("--optical-energy-width-A", type=float, default=None, help="A-specific optical resonance width.")
     parser.add_argument("--optical-energy-width-B", type=float, default=None, help="B-specific optical resonance width.")
-    parser.add_argument("--band-overlap-width", type=float, default=d.band_overlap_width, help="Band-edge overlap width for optical/relaxation matrix elements.")
+    parser.add_argument("--band-overlap-width", type=float, default=d.band_overlap_width, help="Band-edge overlap width for optical matrix elements.")
 
-    # Relaxation.
-    parser.add_argument("--W-downhill", type=float, default=d.W_downhill, help="Post-pulse spin-conserving interlayer downhill transfer scale in 1/fs.")
-    parser.add_argument("--W-intra", type=float, default=d.W_intra, help="Default intramaterial c->v relaxation scale in 1/fs.")
-    parser.add_argument("--W-intra-A", type=float, default=None, help="A-specific c->v relaxation scale; defaults to W-intra.")
-    parser.add_argument("--W-intra-B", type=float, default=None, help="B-specific c->v relaxation scale; defaults to W-intra.")
 
     # Time and comparison.
     parser.add_argument("--t-final", type=float, default=d.t_final, help="Final simulation time in fs.")
@@ -115,10 +110,6 @@ def config_from_args(args: argparse.Namespace) -> ModelConfig:
         optical_energy_width_A=args.optical_energy_width_A,
         optical_energy_width_B=args.optical_energy_width_B,
         band_overlap_width=args.band_overlap_width,
-        W_downhill=args.W_downhill,
-        W_intra=args.W_intra,
-        W_intra_A=args.W_intra_A,
-        W_intra_B=args.W_intra_B,
         t_final=args.t_final,
         dt=args.dt,
         compare_time_ref=args.compare_time_ref,

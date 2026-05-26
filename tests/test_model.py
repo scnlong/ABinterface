@@ -6,11 +6,11 @@ from ABinterface.config import ModelConfig
 from ABinterface.simulation import run_simulation
 
 
-def test_soc_splitting_and_band_alignment():
-    cfg = ModelConfig(N=12).resolved()
+def test_soc_splitting_sign_controls_spin_ordering():
+    cfg = ModelConfig(N=12, lambda_soc_A=-0.05, lambda_soc_B=0.04).resolved()
     split_A, split_B = soc_derived_spin_splittings(cfg)
-    assert split_A == -abs(cfg.lambda_soc_A)
-    assert split_B == -abs(cfg.lambda_soc_B)
+    assert split_A == cfg.lambda_soc_A
+    assert split_B == cfg.lambda_soc_B
 
     energies = build_energies(cfg)
     nv = cfg.N // 2
@@ -23,8 +23,11 @@ def test_soc_splitting_and_band_alignment():
     B_vbm_up = energies[idx_B_up(nv - 1, cfg.N)]
     B_vbm_dn = energies[idx_B_dn(nv - 1, cfg.N)]
 
+    # Negative split: E_down > E_up. Positive split: E_up > E_down.
     assert A_cbm_dn > A_cbm_up
-    assert B_cbm_dn > B_cbm_up
+    assert B_cbm_up > B_cbm_dn
+    assert A_vbm_dn > A_vbm_up
+    assert B_vbm_up > B_vbm_dn
     assert min(B_cbm_up, B_cbm_dn) > max(A_cbm_up, A_cbm_dn)
     assert min(B_vbm_up, B_vbm_dn) > max(A_vbm_up, A_vbm_dn)
 

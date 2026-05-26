@@ -6,18 +6,21 @@ from .config import ModelConfig
 
 
 def soc_derived_spin_splittings(config: ModelConfig) -> tuple[float, float]:
-    """Return diagonal SOC-induced spin splittings for A and B.
+    """Return signed diagonal SOC-induced spin splittings for A and B.
 
     Convention:
         E_up = E0 + split/2
         E_dn = E0 - split/2
 
-    The default parameter regime used for the emergent chain-like interpretation
-    places spin-down CBM above spin-up CBM in both materials.
-    Therefore both splittings are negative and their magnitudes come from
-    material-internal SOC parameters, not from interlayer hopping.
+    The sign is not hard-coded.  It is taken directly from lambda_soc_A/B.
+    Therefore:
+        split < 0  -> spin-down lies above spin-up;
+        split > 0  -> spin-up lies above spin-down.
+
+    The splitting is material-internal and is not derived from interlayer
+    hopping.
     """
-    return -abs(config.lambda_soc_A), -abs(config.lambda_soc_B)
+    return config.lambda_soc_A, config.lambda_soc_B
 
 
 def build_energies(config: ModelConfig) -> np.ndarray:
