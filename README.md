@@ -89,9 +89,7 @@ ABinterface-gui
 
 You will see an interface similar to:
 
-```markdown
 ![](doc/figure/screenshot.png)
-```
 
 Without installation:
 
