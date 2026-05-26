@@ -2,15 +2,18 @@
 
 Compared with the earlier interface-SOC model, this version does not use a
 direct A_c_up <-> B_v_down spin-flip interface hopping as the default mechanism.
-Instead, it implements the more physical chain
+It also does not hard-code the full sequence
 
-    A_v up -> A_c up -> A_c down -> B_c down -> B_v down
+    A_v up -> A_c up -> A_c down -> B_c down -> B_v down.
 
-through:
+Instead, the Hamiltonian contains elementary coherent couplings:
     1. material-internal SOC diagonal splitting;
     2. material-internal SOC up/down mixing inside CB/VB manifolds;
     3. spin-conserving interlayer A_c,s <-> B_c,s hopping;
     4. laser-driven spin-conserving intramaterial v <-> c excitation.
+
+The chain-like pathway is an optional interpretation of the resulting projected
+occupation dynamics, not an imposed algorithmic rule.
 """
 
 import numpy as np
@@ -64,8 +67,10 @@ def add_intramaterial_soc_mixing(H: np.ndarray, config: ModelConfig) -> np.ndarr
     function adds the off-diagonal spin-mixing part:
         X_b_m,up <-> X_b_m,down
 
-    The conduction-band mixing is the key term for Ac_up -> Ac_down and for
-    Pauli blocking through Bc_up/Bc_down mixed eigenstates.
+    The conduction-band mixing allows coherent transfer of projected occupation
+    between up-like and down-like CB components.  It can support an
+    Ac_up-to-Ac_down interpretation in suitable parameter regimes, but the code
+    propagates the full density matrix and does not tag individual electrons.
     """
     N = config.N
     nv = N // 2

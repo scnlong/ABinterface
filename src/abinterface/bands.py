@@ -12,7 +12,8 @@ def soc_derived_spin_splittings(config: ModelConfig) -> tuple[float, float]:
         E_up = E0 + split/2
         E_dn = E0 - split/2
 
-    The chain mechanism uses spin-down CBM above spin-up CBM in both materials.
+    The default parameter regime used for the emergent chain-like interpretation
+    places spin-down CBM above spin-up CBM in both materials.
     Therefore both splittings are negative and their magnitudes come from
     material-internal SOC parameters, not from interlayer hopping.
     """

@@ -157,7 +157,10 @@ def build_intramaterial_relaxation_channels(energies: np.ndarray, config: ModelC
 # Impact excitation was intentionally removed from the main model.
 # Reason: without explicit electron-electron Coulomb matrix elements and a
 # controlled bath/spectral function, it is an extra phenomenological channel.
-# For the current short-time chain mechanism, the interpretable processes are:
+# For the current short-time elementary-channel model, the interpretable
+# ingredients are:
 #   material-internal SOC mixing,
 #   spin-conserving interlayer transfer,
 #   intramaterial c -> v relaxation.
+# A chain-like population-flow picture may emerge from these ingredients, but
+# it is not encoded as a single ordered rate process.

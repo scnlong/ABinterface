@@ -1,4 +1,4 @@
-"""Command-line interface for the A/B interface chain model."""
+"""Command-line interface for the A/B interface elementary-channel model."""
 
 import argparse
 
@@ -143,7 +143,7 @@ def main(argv: list[str] | None = None) -> None:
     """Run the model from the command line."""
     parser = build_parser()
     args = parser.parse_args(argv)
-    config = config_from_args(args).resolved()
+    config = config_from_args(args)
     result = run_simulation(config)
     print_summary(result)
     plot_all(result)

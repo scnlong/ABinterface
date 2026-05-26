@@ -125,7 +125,7 @@ def plot_state_occupation_comparison(result: SimulationResult) -> None:
     cbar.set_label(rf"$\Delta n_i$, clipped at $\pm${vmax:.3g}")
     fig.suptitle(
         "State-resolved occupation change relative to laser pulse end\n"
-        "red = increased, blue = decreased; chain model: intramaterial SOC + spin-conserving interlayer transfer",
+        "red = increased, blue = decreased; elementary channels: intramaterial SOC + spin-conserving interlayer transfer",
         fontsize=11,
     )
     _savefig(fig, f"{config.output_prefix}_state_occupation_change_from_pulse_end_levels.png")
@@ -190,7 +190,7 @@ def plot_all(result: SimulationResult) -> None:
     mark(ax)
     ax.set_xlabel("time / fs")
     ax.set_ylabel(ylabel)
-    ax.set_title("Pathway-resolved projected occupations")
+    ax.set_title("Selected projected occupations for chain-like interpretation")
     ax.legend(frameon=False, ncol=2)
     fig.tight_layout()
     _savefig(fig, f"{config.output_prefix}_pathway_projected_occupations.png")
@@ -269,7 +269,7 @@ def print_summary(result: SimulationResult) -> None:
     print("Model summary")
     print("-------------")
     print("A/B bands are non-matching by construction.")
-    print("Mechanism: A_v up -> A_c up -> A_c down -> B_c down -> B_v down")
+    print("Interpretation target: A_v up -> A_c up -> A_c down -> B_c down -> B_v down (not hard-coded)")
     print(f"A: gap={config.gap_A}, offset={config.offset_A}, bw_v={config.bandwidth_v_A}, bw_c={config.bandwidth_c_A}")
     print(f"B: gap={config.gap_B}, offset={config.offset_B}, bw_v={config.bandwidth_v_B}, bw_c={config.bandwidth_c_B}")
     print(f"Material SOC: lambda_soc_A={config.lambda_soc_A}, lambda_soc_B={config.lambda_soc_B}")

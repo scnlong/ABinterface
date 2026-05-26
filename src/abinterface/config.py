@@ -1,10 +1,16 @@
 """Configuration dataclass for the A/B interface model.
 
-This version implements the chain mechanism discussed in the model notes:
+This version implements the elementary-channel model discussed in the model notes.
+
+The code does not hard-code a single sequential trajectory such as
 
     A_v up -> A_c up -> A_c down -> B_c down -> B_v down
 
-The default model therefore separates three effects:
+Instead, it exposes independent optical, SOC-mixing, interlayer-transfer, and
+relaxation channels.  Under suitable parameters, their combined density-matrix
+dynamics can be interpreted as an emergent chain-like redistribution pattern.
+
+The default model separates three effects:
 
 1. material-internal SOC:
    - diagonal spin splitting derived from lambda_soc_A/B;
@@ -18,8 +24,8 @@ The default model therefore separates three effects:
      spin-conserving c -> v relaxation channels.
 
 The former impact-excitation branch has been removed from the main model.  It
-was too phenomenological for the present short-time chain mechanism and tended
-to obscure the pathway interpretation.
+was too phenomenological for the present short-time elementary-channel model and
+tended to obscure the interpretation of projected occupations.
 
 No independent spin-splitting input parameters are exposed.
 """
@@ -55,8 +61,9 @@ class ModelConfig:
 
     # Coherent intramaterial SOC spin mixing.  These are off-diagonal
     # up<->down matrix elements in eV, applied within each material and band
-    # manifold.  The CB values are central for A_c_up -> A_c_down and
-    # B_c_up/down mixing.
+    # manifold.  The CB values control how strongly projected occupation can
+    # move between up-like and down-like CB components.  They do not impose a
+    # unique ordered trajectory.
     soc_mix_cb_A: float = 0.020
     soc_mix_cb_B: float = 0.020
     soc_mix_vb_A: float = 0.003
