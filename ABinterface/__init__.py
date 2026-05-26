@@ -7,7 +7,7 @@ The package provides a modular version of the original single-file script:
 - unitary density-matrix propagation;
 - phenomenological post-pulse relaxation channels;
 - observable collection and plotting;
-- command-line interface through ``abinterface-run``.
+- command-line interface through ``ABinterface-run``.
 """
 
 from .config import ModelConfig

@@ -118,7 +118,7 @@ class ABInterfaceGUI(tk.Tk):
         self.panels: dict[str, ParameterGrid] = {}
         self.queue: queue.Queue[str] = queue.Queue()
         self.worker: threading.Thread | None = None
-        self.output_dir = tk.StringVar(value=str(Path.cwd() / "abinterface_gui_output"))
+        self.output_dir = tk.StringVar(value=str(Path.cwd() / "ABinterface_output"))
 
         self._build()
         self.after(100, self._poll)
@@ -239,7 +239,7 @@ class ABInterfaceGUI(tk.Tk):
     def _reset_defaults(self) -> None:
         """Reset all GUI controls to ModelConfig defaults."""
         self.defaults = ModelConfig()
-        old_output = str(Path.cwd() / "abinterface_gui_output")
+        old_output = str(Path.cwd() / "ABinterface_gui_output")
         self.output_dir.set(old_output)
 
         for panel in self.panels.values():
@@ -312,7 +312,7 @@ class ABInterfaceGUI(tk.Tk):
             delta_color_percentile=float(self._parse_float("delta_color_percentile")),
             delta_color_linthresh_fraction=float(self._parse_float("delta_color_linthresh_fraction")),
             delta_colormap=str(self.vars["delta_colormap"].get()),
-            output_prefix=str(Path(self.output_dir.get()).expanduser() / "abinterface_gui"),
+            output_prefix=str(Path(self.output_dir.get()).expanduser() / "ABinterface"),
         ).resolved()
 
     def _browse(self) -> None:

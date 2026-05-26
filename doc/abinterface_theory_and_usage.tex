@@ -632,11 +632,11 @@ Parameter & Meaning \\
 
 From the repository root, run without installation by setting \texttt{PYTHONPATH}:
 \begin{lstlisting}
-PYTHONPATH=src python -m abinterface --help
+PYTHONPATH=. python -m ABinterface --help
 \end{lstlisting}
 A typical simulation is
 \begin{lstlisting}
-PYTHONPATH=src python -m abinterface \
+PYTHONPATH=. python -m ABinterface \
   --N 12 \
   --pulse-duration 20 \
   --t-final 70 \
@@ -658,18 +658,18 @@ PYTHONPATH=src python -m abinterface \
 After installation,
 \begin{lstlisting}
 pip install -e .
-abinterface-run --help
+ABinterface-run --help
 \end{lstlisting}
 
 \section{Desktop GUI Usage}
 
 The desktop GUI is based on Tkinter and can be launched by
 \begin{lstlisting}
-PYTHONPATH=src python -m abinterface.gui
+PYTHONPATH=. python -m ABinterface.gui
 \end{lstlisting}
 or, after installation,
 \begin{lstlisting}
-abinterface-gui
+ABinterface-gui
 \end{lstlisting}
 On some Linux systems, the Tkinter bindings must be installed separately:
 \begin{lstlisting}

@@ -5,7 +5,7 @@ model for short-time laser-driven carrier and spin redistribution at a
 non-matching A/B material interface.
 
 The software is intended for qualitative mechanism analysis.  It is not a
-first-principles TDDFT, GW, Boltzmann transport, or microscopic scattering code.
+first-principles TDDFT, BSE, Boltzmann transport, or microscopic scattering code.
 The model is useful for testing how elementary optical excitation, material
 spin-orbit coupling, spin-conserving interlayer transfer, and phenomenological
 post-pulse relaxation combine to produce projected occupation changes.
@@ -50,7 +50,7 @@ short-time elementary-channel model.
 ## Package layout
 
 ```text
-src/abinterface/
+ABinterface/
   basis.py          basis indexing and projections
   bands.py          non-matching A/B no-SOC energies plus SOC-derived splitting
   laser.py          laser pulse and optical matrix elements
@@ -73,13 +73,13 @@ pip install -e .
 or run without installation from the repository root:
 
 ```bash
-PYTHONPATH=src python -m abinterface --help
+PYTHONPATH=. python -m ABinterface --help
 ```
 
 ## Example CLI run
 
 ```bash
-PYTHONPATH=src python -m abinterface \
+PYTHONPATH=. python -m ABinterface \
   --N 12 \
   --pulse-duration 20 \
   --t-final 70 \
@@ -104,7 +104,7 @@ PYTHONPATH=src python -m abinterface \
 After installation:
 
 ```bash
-abinterface-gui
+ABinterface-gui
 ```
 
 You will see an interface similar to:
@@ -114,7 +114,7 @@ You will see an interface similar to:
 Without installation:
 
 ```bash
-PYTHONPATH=src python -m abinterface.gui
+PYTHONPATH=. python -m ABinterface.gui
 ```
 
 On Linux, install Tk support if needed:

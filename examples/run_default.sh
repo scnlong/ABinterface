@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-PYTHONPATH=src python -m abinterface \
+PYTHONPATH=. python -m ABinterface \
   --N 12 \
   --pulse-duration 20 \
   --t-final 70 \

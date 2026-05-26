@@ -18,5 +18,5 @@ __pycache__
 *.toc
 
 # output 
-abinterface_gui_output
-abinterface_model.egg-info
+ABinterface_output
+ABinterface.egg-info

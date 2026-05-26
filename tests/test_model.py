@@ -1,9 +1,9 @@
 import numpy as np
 
-from abinterface.bands import build_energies, soc_derived_spin_splittings
-from abinterface.basis import idx_A_up, idx_A_dn, idx_B_up, idx_B_dn
-from abinterface.config import ModelConfig
-from abinterface.simulation import run_simulation
+from ABinterface.bands import build_energies, soc_derived_spin_splittings
+from ABinterface.basis import idx_A_up, idx_A_dn, idx_B_up, idx_B_dn
+from ABinterface.config import ModelConfig
+from ABinterface.simulation import run_simulation
 
 
 def test_soc_splitting_and_band_alignment():
